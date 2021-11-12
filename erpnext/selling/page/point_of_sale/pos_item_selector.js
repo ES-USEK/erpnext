@@ -27,11 +27,11 @@ erpnext.PointOfSale.ItemSelector = class {
 					<div class="label">All Items</div>
 					<div class="search-field"></div>
 					<div class="item-group-field"></div>
+					<div class="clear-button">Clear</div>
 				</div>
 				<div class="items-container"></div>
 			</section>`
 		);
-
 		this.$component = this.wrapper.find('.items-selector');
 		this.$items_container = this.$component.find('.items-container');
 	}
@@ -138,6 +138,7 @@ erpnext.PointOfSale.ItemSelector = class {
 		const doc = me.events.get_frm().doc;
 		this.$component.find('.search-field').html('');
 		this.$component.find('.item-group-field').html('');
+		this.$component.find('.clear-button').html('');
 
 		this.search_field = frappe.ui.form.make_control({
 			df: {
@@ -171,6 +172,17 @@ erpnext.PointOfSale.ItemSelector = class {
 			parent: this.$component.find('.item-group-field'),
 			render_input: true,
 		});
+		this.clear_button = frappe.ui.form.make_control({
+			df: {
+				label: __('Clear'),
+				fieldname: 'clear',
+				fieldtype: 'Button',
+				btn_size: 'sm' ,// xs, sm, lg	
+			},
+			parent: this.$component.find('.clear-button'),
+			render_input: true,
+		});
+
 		this.search_field.toggle_label(false);
 		this.item_group_field.toggle_label(false);
 	}
@@ -216,6 +228,15 @@ erpnext.PointOfSale.ItemSelector = class {
 					this.barcode_scanned = true;
 				}
 			}
+		});
+
+		this.$component.on('click','.clear-button',function(){
+			me.set_search_value('');
+			me.item_group = 'All Items Groups';
+			!me.item_group && (me.item_group = me.parent_item_group);
+			me.filter_items();
+			me.item_group_field.$input[0].value='';
+			console.log(me);
 		});
 
 		this.$component.on('click', '.item-wrapper', function() {
