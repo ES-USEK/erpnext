@@ -345,7 +345,7 @@ erpnext.PointOfSale.Controller = class {
 				},
 
 				submit_invoice: () => {
-					this.frm.savesubmit()
+					this.frm.save('Submit')
 						.then((r) => {
 							this.toggle_components(false);
 							this.order_summary.toggle_component(true);
