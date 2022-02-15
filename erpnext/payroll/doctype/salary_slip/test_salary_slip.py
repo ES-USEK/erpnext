@@ -374,6 +374,7 @@ class TestSalarySlip(unittest.TestCase):
 		create_loan_type("Car Loan", 500000, 8.4,
 			is_term_loan=1,
 			mode_of_payment='Cash',
+			disbursement_account='Disbursement Account - _TC',
 			payment_account='Payment Account - _TC',
 			loan_account='Loan Account - _TC',
 			interest_income_account='Interest Income Account - _TC',
@@ -384,7 +385,7 @@ class TestSalarySlip(unittest.TestCase):
 		make_salary_structure("Test Loan Repayment Salary Structure", "Monthly", employee=applicant, currency='INR',
 			payroll_period=payroll_period)
 
-		frappe.db.sql("delete from tabLoan")
+		frappe.db.sql("delete from tabLoan where applicant = 'test_loan_repayment_salary_slip@salary.com'")
 		loan = create_loan(applicant, "Car Loan", 11000, "Repay Over Number of Periods", 20, posting_date=add_months(nowdate(), -1))
 		loan.repay_from_salary = 1
 		loan.submit()
@@ -998,6 +999,8 @@ def make_leave_application(employee, from_date, to_date, leave_type, company=Non
 		leave_approver = 'test@example.com'
 	))
 	leave_application.submit()
+
+	return leave_application
 
 def setup_test():
 	make_earning_salary_component(setup=True, company_list=["_Test Company"])
