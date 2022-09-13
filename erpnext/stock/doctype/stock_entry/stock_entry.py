@@ -590,7 +590,7 @@ class StockEntry(StockController):
 					)
 					+ "<br><br>"
 					+ _("Available quantity is {0}, you need {1}").format(
-						frappe.bold(d.actual_qty), frappe.bold(d.transfer_qty)
+						frappe.bold(flt(d.actual_qty, d.precision("actual_qty"))), frappe.bold(d.transfer_qty)
 					),
 					NegativeStockError,
 					title=_("Insufficient Stock"),
@@ -856,15 +856,22 @@ class StockEntry(StockController):
 							se_item.item_code, self.purchase_order
 						)
 					)
-				total_supplied = frappe.db.sql(
-					"""select sum(transfer_qty)
-					from `tabStock Entry Detail`, `tabStock Entry`
-					where `tabStock Entry`.purchase_order = %s
-						and `tabStock Entry`.docstatus = 1
-						and `tabStock Entry Detail`.item_code = %s
-						and `tabStock Entry Detail`.parent = `tabStock Entry`.name""",
-					(self.purchase_order, se_item.item_code),
-				)[0][0]
+
+				se = frappe.qb.DocType("Stock Entry")
+				se_detail = frappe.qb.DocType("Stock Entry Detail")
+
+				total_supplied = (
+					frappe.qb.from_(se)
+					.inner_join(se_detail)
+					.on(se.name == se_detail.parent)
+					.select(Sum(se_detail.transfer_qty))
+					.where(
+						(se.purpose == "Send to Subcontractor")
+						& (se.purchase_order == self.purchase_order)
+						& (se_detail.item_code == se_item.item_code)
+						& (se.docstatus == 1)
+					)
+				).run()[0][0]
 
 				if flt(total_supplied, precision) > flt(total_allowed, precision):
 					frappe.throw(
